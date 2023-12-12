@@ -3,10 +3,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--target-column', type=str)
-
 def delete_records_with_missing_values(data):
+    row_num, col_num = data.shape
     delete_flags = []
     for index, row in data.iterrows():
         null_count = data.loc[[index]].isna().sum().sum()
@@ -15,7 +13,7 @@ def delete_records_with_missing_values(data):
         else:
             delete_flags.append(False)
     data["delete_flag"] = delete_flags
-    data = data.drop(data[data.delete_flag == True].index)
+    data = data.drop(data[data.delete_flag is True].index)
     data = data.drop(['delete_flag'], axis=1)
     return data
 
@@ -29,37 +27,36 @@ def process_columns_with_missing_values(data):
             columns_to_be_deleted.append(series_name)
         elif series.isna().sum() > 0:
             columns_to_be_updated.append(series_name)
-    # print(columns_to_be_deleted)
-    # print(columns_to_be_updated)
     data = data.drop(columns_to_be_deleted, axis=1)
     for col in columns_to_be_updated:
         data[col] = data[col].fillna(data[col].mean())
     return data
 
 
-def binarize_quality_features(data):
+def binarize_quality_features(data, quality_features_columns):
     data = pd.get_dummies(data, columns=quality_features_columns, drop_first=True)
     return data
 
 
-def split_data(data):
-    Y = data[TARGET_COLUMN]
-    X = data.drop(TARGET_COLUMN, axis=1)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, Y, test_size=0.7, random_state=42
+def split_data(data, target_column):
+    y = data[target_column]
+    x = data.drop(target_column, axis=1)
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.7, random_state=42
     )
-    return X_train, X_test, y_train, y_test
+    return x_train, x_test, y_train, y_test
 
 
-if __name__ == "__main__":
+def main():
     prefix, key = '/data', 'data.xlsx'
     data_location = f'{prefix}/{key}'
     # Read the data
     data = pd.read_excel(data_location)
-    target_column = args.target_column
-    quality_features_columns = [
-        'группа', 'подгруппа', 'операция', 'стенокардия ФК', 'СН ФК', 'ЦАГ перетоки', 'КТ очаг ишемии'
-    ]
+
+    # Parse the arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--target-column', type=str)
+    args = parser.parse_args()
 
     # Drop records with missing values
     data = delete_records_with_missing_values(data)
@@ -68,30 +65,39 @@ if __name__ == "__main__":
     data = process_columns_with_missing_values(data)
 
     # Binarization of the quality features
-    data = binarize_quality_features(data)
+    quality_features_columns = [
+        'группа', 'подгруппа', 'операция', 'стенокардия ФК', 'СН ФК', 'ЦАГ перетоки', 'КТ очаг ишемии'
+    ]
+    data = binarize_quality_features(data, quality_features_columns)
 
     # Split the data into train and test datasets
-    X_train, X_test, y_train, y_test = split_data(data)
+    target_column = args.target_column
+    x_train, x_test, y_train, y_test = split_data(data, target_column)
 
     # Write the datasets into dataframes
-    base_dir = "/opt/ml/train"
-    pd.DataFrame(X_train).to_csv(
-        f"{base_dir}/X_train.csv",
+    train_data_dir = "/opt/ml/train"
+    pd.DataFrame(x_train).to_csv(
+        f"{train_data_dir}/x_data.csv",
         header=True,
         index=False
     )
-    pd.DataFrame(X_test).to_csv(
-        f"{base_dir}/X_test.csv",
+    pd.DataFrame(x_test).to_csv(
+        f"{train_data_dir}/x_data.csv",
         header=True,
         index=False
     )
+    test_data_dir = "/opt/ml/test"
     pd.DataFrame(y_train).to_csv(
-        f"{base_dir}/y_train.csv",
+        f"{test_data_dir}/y_data.csv",
         header=True,
         index=False
     )
     pd.DataFrame(y_test).to_csv(
-        f"{base_dir}/y_test.csv",
+        f"{test_data_dir}/y_data.csv",
         header=True,
         index=False
     )
+
+
+if __name__ == "__main__":
+    main()
