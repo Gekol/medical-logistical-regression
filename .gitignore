@@ -1,2 +1,5 @@
 venv
 .idea
+artifacts
+wandb
+.ipynb_checkpoints

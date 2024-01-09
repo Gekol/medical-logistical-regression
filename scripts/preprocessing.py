@@ -48,9 +48,9 @@ def split_data(data, target_column):
 
 
 def main():
-    prefix, key = '/data', 'data.xlsx'
+    prefix, key = '/raw_data', 'raw_data.xlsx'
     data_location = f'{prefix}/{key}'
-    # Read the data
+    # Read the raw_data
     data = pd.read_excel(data_location)
 
     # Parse the arguments
@@ -70,7 +70,7 @@ def main():
     ]
     data = binarize_quality_features(data, quality_features_columns)
 
-    # Split the data into train and test datasets
+    # Split the raw_data into train and test datasets
     target_column = args.target_column
     x_train, x_test, y_train, y_test = split_data(data, target_column)
 

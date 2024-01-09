@@ -13,10 +13,10 @@ from sklearn.feature_selection import SequentialFeatureSelector
 
 
 # def input_fn(input_data, content_type):
-#     """Parse input data.
+#     """Parse input raw_data.
 
 #     We currently only take csv input. Since we need to process both labelled
-#     and unlabelled data we first determine whether the label column is present
+#     and unlabelled raw_data we first determine whether the label column is present
 #     by looking at how many columns were provided.
 #     """
 #     # cgi.parse_header extracts all arguments after ';' as key-value pairs
@@ -25,7 +25,7 @@ from sklearn.feature_selection import SequentialFeatureSelector
 #     content_type, params = cgi.parse_header(content_type.lower())
 
 #     if content_type == 'text/csv':
-#         # Read the raw input data as CSV.
+#         # Read the raw input raw_data as CSV.
 #         df = pd.read_csv(StringIO(input_data), header=None)
 #         return df
 #     else:
@@ -108,7 +108,7 @@ def main():
     # Sagemaker specific arguments.
     # Defaults are set in the environment variables.
     parser.add_argument(
-        '--output-data-dir',
+        '--output-raw_data-dir',
         type=str,
         default=os.environ['SM_OUTPUT_DATA_DIR']
     )
@@ -132,7 +132,7 @@ def main():
 
     args = parser.parse_args()
 
-    # Read the train data
+    # Read the train raw_data
     x_train = pd.read_csv(
         f"{args.train}/x_train.csv",
     )
@@ -140,7 +140,7 @@ def main():
         f"{args.train}/y_train.csv",
     )
 
-    # Read the test data
+    # Read the test raw_data
     x_test = pd.read_csv(
         f"{args.train}/x_test.csv",
     )
