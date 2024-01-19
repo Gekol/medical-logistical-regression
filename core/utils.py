@@ -48,6 +48,7 @@ def update_columns_with_nulls(data: pd.DataFrame):
 
 
 def split_data(data: pd.DataFrame, target_column: str, test_size: float):
+    """Split dataset into train set and test set"""
     y = data[[target_column]]
     x = data.drop(target_column, axis=1)
 
@@ -61,12 +62,14 @@ def split_data(data: pd.DataFrame, target_column: str, test_size: float):
 
 
 def separate_x_from_y(data, target_column):
+    """Separate target column from feature columns"""
     y = data[target_column]
     x = data.drop(target_column, axis=1)
     return x, y
 
 
 def save_model(model, prefix, artifact, model_name):
+    """Save model"""
     path = f"{prefix}/{model_name}.joblib"
     serialized_model = dump(model, path)
     artifact.add_file(path, model_name)
